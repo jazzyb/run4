@@ -1,0 +1,32 @@
+h1. run4
+
+@run4@ is a tool which is so useful, I'm surprised that no one had written it yet
+(that I could find).  @run4@ runs any command for only a specified period of
+time.
+
+h2. Installation
+
+Since it is only a 100 line C file, I didn't bother to go the whole makefile
+route.  Simply @gcc run4.c -o run4@ and do with it whatever you like :)
+
+h2. (Very Simple) Examples
+
+@# see the usage@
+@run4 -h@
+
+@# run tshark for only half an hour and stop@
+@run4 30 minutes 'tshark -i eth0 -w sniff.pcap'@
+
+@# run ping for a minute@
+@run4 1 minutes 'ping google.com'@
+
+h2. Motivation
+
+As you can see from the examples above, I needed something for testing networks
+which would run for a while and then stop.  Simply sending a packet count (the
+-c option) to these tools was insufficient for my purposes.
+
+I hope others will find it as useful as I have.
+
+h2. Enjoy,
+@jazzyb@

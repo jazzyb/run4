@@ -1,9 +1,11 @@
-#include <stdlib.h>
-#include <sys/wait.h>
-#include <limits.h>
 #include <signal.h>
 #include <string.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <sys/wait.h>
+
+
+#define ARG_MAX 10000 // totally arbitrary
 
 pid_t cpid;
 
@@ -51,6 +53,11 @@ convert_to_argument_list (char **args, char *cmd)
         if (cmd[i] == ' ' || cmd[i] == '\t') {
             cmd[i] = '\0';
             args[++count] = cmd + i + 1;
+	    if (count > ARG_MAX) {
+		fprintf(stderr, "warning: the command exceeds the maximum number of\n"
+			        "         arguments (10000) allowed by run4; truncating\n");
+		break;
+	    }
         }
     }
     args[count+1] = NULL;

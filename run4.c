@@ -23,6 +23,9 @@
  *  To Public License, Version 2, as published by Sam Hocevar. See
  *  http://sam.zoy.org/wtfpl/COPYING for more details.
  *  -----------------------------------------------------------------
+ *
+ *  Enjoy,
+ *  jazzyb
  */
 
 #include <signal.h>
@@ -78,15 +81,19 @@ inline int isseparator (char c) { return (isspace(c) || isquote(c) || c == '\0')
  * list.
  */
 inline int
-add_arg_to_list (char *cmd, int *i, char **args, int *count)
+add_arg_to_list (char *cmd, int i, char **args, int *count)
 {
-    cmd[*i] = '\0';
-    if (!isseparator(cmd[*i+1])) {
-	args[++(*count)] = cmd + *i + 1;
+    cmd[i] = '\0';
+    if (!isseparator(cmd[i+1])) { // the next string isn't empty
+	args[++(*count)] = cmd + i + 1;
     }
 }
 
 
+/*
+ * Set each of the char*'s in args to point to each of the words in cmd,
+ * ignoring empty strings and preserving quoted strings.
+ */
 void
 convert_to_argument_list (char **args, char *cmd)
 {
@@ -102,15 +109,15 @@ convert_to_argument_list (char **args, char *cmd)
 	if (isquote(cmd[i])) {
 	    if (cmd[i] == within_quotes) {
 		within_quotes = 0;
-		add_arg_to_list(cmd, &i, args, &count);
+		add_arg_to_list(cmd, i, args, &count);
 
 	    } else if (!within_quotes) {
 		within_quotes = cmd[i];
-		add_arg_to_list(cmd, &i, args, &count);
+		add_arg_to_list(cmd, i, args, &count);
 	    }
 
 	} else if (isspace(cmd[i]) && !within_quotes) {
-	    add_arg_to_list(cmd, &i, args, &count);
+	    add_arg_to_list(cmd, i, args, &count);
 
 	    if (count > ARG_MAX) {
 		fprintf(stderr, "warning: the command exceeds the maximum number of\n"

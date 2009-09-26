@@ -1,8 +1,36 @@
+/*
+ *  Please see the README.textile for info about this tool.
+ *
+ *  -----------------------------------------------------------------
+ *             DO WHAT THE FUCK YOU WANT TO PUBLIC LICENSE
+ *                     Version 2, December 2004
+ * 
+ *  Copyright (C) 2004 Sam Hocevar
+ *   14 rue de Plaisance, 75014 Paris, France
+ *  Everyone is permitted to copy and distribute verbatim or modified
+ *  copies of this license document, and changing it is allowed as long
+ *  as the name is changed.
+ * 
+ *             DO WHAT THE FUCK YOU WANT TO PUBLIC LICENSE
+ *    TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION
+ * 
+ *   0. You just DO WHAT THE FUCK YOU WANT TO. 
+ * 
+ *  -----------------------------------------------------------------
+ *  This program is free software. It comes without any warranty, to
+ *  the extent permitted by applicable law. You can redistribute it
+ *  and/or modify it under the terms of the Do What The Fuck You Want
+ *  To Public License, Version 2, as published by Sam Hocevar. See
+ *  http://sam.zoy.org/wtfpl/COPYING for more details.
+ *  -----------------------------------------------------------------
+ */
+
 #include <signal.h>
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/wait.h>
+#include <ctype.h>
 
 
 #define ARG_MAX 10000 // totally arbitrary
@@ -40,25 +68,57 @@ convert_to_seconds (char *number, char *measure)
     return secs;
 }
 
+inline int isquote (char c) { return (c == '\'' || c == '"'); }
+
+inline int isseparator (char c) { return (isspace(c) || isquote(c) || c == '\0'); }
+
+/*
+ * Sets the given char in the string to an '\0' char to end the previous string
+ * in the argument list.  Then adds the next non-empty string to the argument
+ * list.
+ */
+inline int
+add_arg_to_list (char *cmd, int *i, char **args, int *count)
+{
+    cmd[*i] = '\0';
+    if (!isseparator(cmd[*i+1])) {
+	args[++(*count)] = cmd + *i + 1;
+    }
+}
+
+
 void
 convert_to_argument_list (char **args, char *cmd)
 {
     int i;
     int count;
     int size;
+    char within_quotes;
 
-    size = strlen(cmd); // FIXME: use strnlen()?
     args[0] = cmd;
+    within_quotes = 0;
+    size = strlen(cmd);
     for (count = i = 0; i < size; i++) {
-        if (cmd[i] == ' ' || cmd[i] == '\t') {
-            cmd[i] = '\0';
-            args[++count] = cmd + i + 1;
+	if (isquote(cmd[i])) {
+	    if (cmd[i] == within_quotes) {
+		within_quotes = 0;
+		add_arg_to_list(cmd, &i, args, &count);
+
+	    } else if (!within_quotes) {
+		within_quotes = cmd[i];
+		add_arg_to_list(cmd, &i, args, &count);
+	    }
+
+	} else if (isspace(cmd[i]) && !within_quotes) {
+	    add_arg_to_list(cmd, &i, args, &count);
+
 	    if (count > ARG_MAX) {
 		fprintf(stderr, "warning: the command exceeds the maximum number of\n"
-			        "         arguments (10000) allowed by run4; truncating\n");
+				"         arguments (%d) allowed by run4; truncating\n",
+				ARG_MAX);
 		break;
 	    }
-        }
+	}
     }
     args[count+1] = NULL;
 }

@@ -6,7 +6,7 @@ time.
 
 h2. Installation
 
-Since it is only a 100 line C file, I didn't bother to go the whole makefile
+Since it is only a 150 line C file, I didn't bother to go the whole makefile
 route.  Simply @gcc run4.c -o run4@ and do with it whatever you like :)
 
 h2. (Very Simple) Examples
